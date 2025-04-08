@@ -1,0 +1,37 @@
+.container {
+  display: flex;
+  padding: 12px 16px;
+  overflow-x: auto;
+  background-color: #fff;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  justify-content: space-around;
+}
+
+.action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  scroll-snap-align: start;
+  min-width: 64px;
+}
+
+.iconWrapper {
+  width: 60px;
+  height: 48px;
+  border-radius: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
+}
+
+.label {
+  font-size: 12px;
+  color: #3c4043;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+}

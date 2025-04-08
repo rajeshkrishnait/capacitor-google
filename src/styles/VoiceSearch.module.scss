@@ -1,0 +1,137 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #fff;
+    color: #000;
+    padding: 16px;
+  }
+  
+  .micButton {
+    background: transparent;
+    border: none;
+    padding: 12px;
+    border-radius: 50%;
+    box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  
+    img {
+      width: 48px;
+      height: 48px;
+    }
+  
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+  
+  .listeningModal {
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+  }
+  
+  .modalCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #fff;
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0px 4px 24px rgba(0, 0, 0, 0.2);
+    max-width: 90%;
+    width: 320px;
+  }
+  
+  .listeningIcon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+    animation: pulse 1.5s infinite ease-in-out;
+  }
+  
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  
+    50% {
+      transform: scale(1.2);
+      opacity: 0.7;
+    }
+  
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  .listeningText {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+  
+  .cancelButton {
+    background: none;
+    border: none;
+    color: #1a73e8;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 12px;
+  }
+  
+  .resultCard {
+    margin-top: 24px;
+    background-color: #f8f9fa;
+    padding: 20px 24px;
+    border-radius: 12px;
+    box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
+    max-width: 90%;
+    width: 500px;
+    text-align: center;
+  }
+  
+  .resultText {
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  
+  .resultHint {
+    font-size: 14px;
+    color: #5f6368;
+  }
+  
+  /* Mobile styles */
+  @media (max-width: 480px) {
+    .modalCard {
+      width: 90%;
+      padding: 24px;
+    }
+  
+    .resultCard {
+      width: 90%;
+      padding: 16px;
+    }
+  
+    .micButton img {
+      width: 40px;
+      height: 40px;
+    }
+  
+    .listeningIcon {
+      width: 48px;
+      height: 48px;
+    }
+  }
+  
