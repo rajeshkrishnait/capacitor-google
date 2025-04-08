@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import Modal from "react-modal";
+import { useNavigate } from "react-router-dom";
 import styles from "../styles/VoiceSearch.module.scss";
 
 interface VoiceSearchProps {
@@ -10,6 +11,8 @@ interface VoiceSearchProps {
 const VoiceSearch: React.FC<VoiceSearchProps> = ({ isOpen, onClose }) => {
   const recognitionRef = useRef<any>(null);
   const [transcript, setTranscript] = useState("");
+  const [isListening, setIsListening] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -24,16 +27,20 @@ const VoiceSearch: React.FC<VoiceSearchProps> = ({ isOpen, onClose }) => {
 
     const recognition = new SpeechRecognition();
     recognition.lang = "en-US";
-    recognition.interimResults = true; // Allow interim results for real-time updates
+    recognition.interimResults = true;
     recognition.continuous = false;
 
-    recognition.onstart = () => console.log("Speech recognition started");
+    recognition.onstart = () => setIsListening(true);
     recognition.onend = () => {
-      console.log("Speech recognition ended");
+      setIsListening(false);
+      if (transcript.trim()) {
+        navigate("/search-result", { state: { query: transcript } });
+      }
       onClose();
     };
-    recognition.onerror = (e) => {
-      console.error("Speech error:", e);
+
+    recognition.onerror = () => {
+      setIsListening(false);
       onClose();
     };
 
@@ -42,7 +49,6 @@ const VoiceSearch: React.FC<VoiceSearchProps> = ({ isOpen, onClose }) => {
         .map((result: any) => result[0].transcript)
         .join("");
       setTranscript(interimTranscript);
-      console.log(`Interim transcript: ${interimTranscript}`);
     };
 
     recognitionRef.current = recognition;
@@ -52,7 +58,7 @@ const VoiceSearch: React.FC<VoiceSearchProps> = ({ isOpen, onClose }) => {
       recognition.stop();
       recognitionRef.current = null;
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, navigate, transcript]);
 
   return (
     <Modal
@@ -66,16 +72,22 @@ const VoiceSearch: React.FC<VoiceSearchProps> = ({ isOpen, onClose }) => {
         <button className={styles.backButton} onClick={onClose}>
           ←
         </button>
-        <span className={styles.modalTitle}>Listening...</span>
+        <span className={styles.modalTitle}>
+          {isListening ? "Listening..." : "Results"}
+        </span>
       </div>
       <div className={styles.modalContent}>
-        <div className={styles.dotsAnimation}>
-          <span className={styles.dot} style={{ backgroundColor: "#4285F4" }}></span>
-          <span className={styles.dot} style={{ backgroundColor: "#EA4335" }}></span>
-          <span className={styles.dot} style={{ backgroundColor: "#FBBC05" }}></span>
-          <span className={styles.dot} style={{ backgroundColor: "#34A853" }}></span>
-        </div>
-        <p className={styles.listeningText}>{transcript || "Listening…"}</p>
+        {isListening ? (
+          <div>
+            <div className={styles.dotsAnimation}>
+              <span className={styles.dot} style={{ backgroundColor: "#4285F4" }}></span>
+              <span className={styles.dot} style={{ backgroundColor: "#EA4335" }}></span>
+              <span className={styles.dot} style={{ backgroundColor: "#FBBC05" }}></span>
+              <span className={styles.dot} style={{ backgroundColor: "#34A853" }}></span>
+            </div>
+            <p className={styles.listeningText}>{transcript || "Listening…"}</p>
+          </div>
+        ) : null}
       </div>
     </Modal>
   );

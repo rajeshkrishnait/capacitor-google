@@ -1,5 +1,6 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import Modal from "react-modal";
+import Cropper from "react-easy-crop";
 import { Camera } from "@capacitor/camera";
 import styles from "../styles/imageUploadModal.module.scss";
 
@@ -8,6 +9,9 @@ Modal.setAppElement("#root");
 const ImageUploadModal = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const closeModal = () => setIsOpen(false);
@@ -19,6 +23,16 @@ const ImageUploadModal = () => {
       reader.onloadend = () => setImageSrc(reader.result as string);
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleCropComplete = useCallback((_, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const handleCropSave = () => {
+    // Logic to save or process the cropped image
+    console.log("Cropped area pixels:", croppedAreaPixels);
+    closeModal();
   };
 
   const handleCameraClick = async () => {
@@ -37,7 +51,6 @@ const ImageUploadModal = () => {
 
   return (
     <div>
-
       <Modal
         isOpen={isOpen}
         onRequestClose={closeModal}
@@ -46,18 +59,24 @@ const ImageUploadModal = () => {
       >
         <div className={styles.modalHeader}>
           <span>Search any image with Google Lens</span>
-          <button className={styles.closeBtn} onClick={closeModal}>×</button>
+          <button className={styles.closeBtn} onClick={closeModal}>
+            ×
+          </button>
         </div>
 
         {!imageSrc ? (
           <div className={styles.uploadSection}>
-            <div className={styles.dropArea} onClick={() => fileInputRef.current?.click()}>
+            <div
+              className={styles.dropArea}
+              onClick={() => fileInputRef.current?.click()}
+            >
               <img
                 src="https://www.gstatic.com/images/branding/product/1x/photos_96dp.png"
                 alt="Placeholder"
               />
               <p>
-                Drag an image here or <span className={styles.uploadLink}>upload a file</span>
+                Drag an image here or{" "}
+                <span className={styles.uploadLink}>upload a file</span>
               </p>
               <input
                 type="file"
@@ -85,9 +104,26 @@ const ImageUploadModal = () => {
             </button>
           </div>
         ) : (
-          <div className={styles.resultSection}>
-            <img src={imageSrc} alt="Uploaded preview" className={styles.previewImg} />
-            <p className={styles.dummyResults}>Dummy results displayed here...</p>
+          <div className={styles.cropSection}>
+            <div className={styles.cropperContainer}>
+              <Cropper
+                image={imageSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={handleCropComplete}
+              />
+            </div>
+            <div className={styles.cropControls}>
+              <button className={styles.cropSaveBtn} onClick={handleCropSave}>
+                Save
+              </button>
+              <button className={styles.cropCancelBtn} onClick={closeModal}>
+                Cancel
+              </button>
+            </div>
           </div>
         )}
       </Modal>
@@ -95,4 +131,4 @@ const ImageUploadModal = () => {
   );
 };
 
-export default ImageUploadModal
+export default ImageUploadModal;
