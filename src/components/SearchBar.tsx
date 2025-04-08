@@ -5,12 +5,15 @@ import cameraIcon from '../assets/camera.svg';
 import { useState } from 'react';
 import VoiceSearch from './VoiceSearch';
 import ImageUploadModal from './ImageUploadModal';
+
 const SearchBar = () => {
   const [showVoiceSearch, setShowVoiceSearch] = useState(false);
   const [showImageUpload, setShowImageUpload] = useState(false);
+
   const handleVoiceClick = () => {
     setShowVoiceSearch(true);
   };
+
   return (
     <div className={styles.searchBarContainer}>
       <div className={styles.searchBar}>
@@ -20,11 +23,23 @@ const SearchBar = () => {
           placeholder="Search Google or type a URL"
         />
         <div className={styles.iconGroup}>
-          <img src={micIcon} alt="mic"  onClick={handleVoiceClick} className={styles.icon} />
-          {showVoiceSearch && <VoiceSearch />}
-
-          <img src={cameraIcon} alt="camera" className={styles.icon} onClick={()=>setShowImageUpload(prev=>!prev)}/>
-          {showImageUpload && <ImageUploadModal/>}
+          <img
+            src={micIcon}
+            alt="mic"
+            onClick={handleVoiceClick}
+            className={styles.icon}
+          />
+          <VoiceSearch
+            isOpen={showVoiceSearch}
+            onClose={() => setShowVoiceSearch(false)}
+          />
+          <img
+            src={cameraIcon}
+            alt="camera"
+            className={styles.icon}
+            onClick={() => setShowImageUpload((prev) => !prev)}
+          />
+          {showImageUpload && <ImageUploadModal />}
         </div>
       </div>
     </div>

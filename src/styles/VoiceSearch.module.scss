@@ -7,9 +7,9 @@
     background-color: #fff;
     color: #000;
     padding: 16px;
-  }
-  
-  .micButton {
+}
+
+.micButton {
     background: transparent;
     border: none;
     padding: 12px;
@@ -17,70 +17,102 @@
     box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
     cursor: pointer;
     transition: transform 0.2s ease;
-  
+
     img {
-      width: 48px;
-      height: 48px;
+        width: 48px;
+        height: 48px;
     }
-  
+
     &:hover {
-      transform: scale(1.05);
+        transform: scale(1.05);
     }
-  }
-  
-  .listeningModal {
+}
+
+.listeningModal {
     position: fixed;
     inset: 0;
     background: #fff;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
     z-index: 999;
-  }
-  
-  .modalCard {
+}
+
+.modalHeader {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background: #f1f3f4;
+    border-bottom: 1px solid #ddd;
+}
+
+.backButton {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    margin-right: 16px;
+}
+
+.modalTitle {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.modalContent {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: #fff;
-    border-radius: 24px;
-    padding: 32px;
-    box-shadow: 0px 4px 24px rgba(0, 0, 0, 0.2);
-    max-width: 90%;
-    width: 320px;
-  }
-  
-  .listeningIcon {
-    width: 64px;
-    height: 64px;
+    justify-content: center;
+    flex-grow: 1;
+}
+
+.dotsAnimation {
+    display: flex;
+    gap: 8px;
     margin-bottom: 16px;
-    animation: pulse 1.5s infinite ease-in-out;
-  }
-  
-  @keyframes pulse {
-    0% {
-      transform: scale(1);
-      opacity: 1;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    animation: wave 1.5s infinite ease-in-out;
+}
+
+.dot:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+.dot:nth-child(4) {
+    animation-delay: 0.6s;
+}
+
+@keyframes wave {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
     }
-  
     50% {
-      transform: scale(1.2);
-      opacity: 0.7;
+        transform: scale(1.5);
+        opacity: 0.5;
     }
-  
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-  
-  .listeningText {
+}
+
+.listeningText {
     font-size: 18px;
     font-weight: 500;
     margin-bottom: 16px;
-  }
-  
-  .cancelButton {
+}
+
+.cancelButton {
     background: none;
     border: none;
     color: #1a73e8;
@@ -88,9 +120,9 @@
     font-weight: 500;
     cursor: pointer;
     margin-top: 12px;
-  }
-  
-  .resultCard {
+}
+
+.resultCard {
     margin-top: 24px;
     background-color: #f8f9fa;
     padding: 20px 24px;
@@ -99,39 +131,38 @@
     max-width: 90%;
     width: 500px;
     text-align: center;
-  }
-  
-  .resultText {
+}
+
+.resultText {
     font-size: 20px;
     font-weight: 500;
     margin-bottom: 8px;
-  }
-  
-  .resultHint {
+}
+
+.resultHint {
     font-size: 14px;
     color: #5f6368;
-  }
-  
-  /* Mobile styles */
-  @media (max-width: 480px) {
+}
+
+/* Mobile styles */
+@media (max-width: 480px) {
     .modalCard {
-      width: 90%;
-      padding: 24px;
+        width: 90%;
+        padding: 24px;
     }
-  
+
     .resultCard {
-      width: 90%;
-      padding: 16px;
+        width: 90%;
+        padding: 16px;
     }
-  
+
     .micButton img {
-      width: 40px;
-      height: 40px;
+        width: 40px;
+        height: 40px;
     }
-  
+
     .listeningIcon {
-      width: 48px;
-      height: 48px;
+        width: 48px;
+        height: 48px;
     }
-  }
-  
+}

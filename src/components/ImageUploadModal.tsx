@@ -6,11 +6,10 @@ import styles from "../styles/imageUploadModal.module.scss";
 Modal.setAppElement("#root");
 
 const ImageUploadModal = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const openModal = () => setIsOpen(true);
   const closeModal = () => setIsOpen(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,7 +37,6 @@ const ImageUploadModal = () => {
 
   return (
     <div>
-      <button className={styles.openModalBtn} onClick={openModal}>Upload Image</button>
 
       <Modal
         isOpen={isOpen}

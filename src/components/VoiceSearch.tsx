@@ -1,90 +1,83 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import Modal from "react-modal";
 import styles from "../styles/VoiceSearch.module.scss";
 
-const VoiceSearch = () => {
-  const [isListening, setIsListening] = useState(false);
-  const [transcript, setTranscript] = useState("");
-  const [result, setResult] = useState<string | null>(null);
+interface VoiceSearchProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const VoiceSearch: React.FC<VoiceSearchProps> = ({ isOpen, onClose }) => {
   const recognitionRef = useRef<any>(null);
+  const [transcript, setTranscript] = useState("");
 
   useEffect(() => {
+    if (!isOpen) return;
+
     const SpeechRecognition =
       window?.SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       alert("Your browser does not support Speech Recognition.");
+      onClose();
       return;
     }
 
     const recognition = new SpeechRecognition();
     recognition.lang = "en-US";
-    recognition.interimResults = false;
+    recognition.interimResults = true; // Allow interim results for real-time updates
     recognition.continuous = false;
 
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
-    recognition.onerror = (e) => console.error("Speech error:", e);
+    recognition.onstart = () => console.log("Speech recognition started");
+    recognition.onend = () => {
+      console.log("Speech recognition ended");
+      onClose();
+    };
+    recognition.onerror = (e) => {
+      console.error("Speech error:", e);
+      onClose();
+    };
 
     recognition.onresult = (event: any) => {
-      const text = event.results[0][0].transcript;
-      setTranscript(text);
-      fakeApiCall(text);
+      const interimTranscript = Array.from(event.results)
+        .map((result: any) => result[0].transcript)
+        .join("");
+      setTranscript(interimTranscript);
+      console.log(`Interim transcript: ${interimTranscript}`);
     };
 
     recognitionRef.current = recognition;
-  }, []);
+    recognition.start();
 
-  const startListening = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.start();
-    }
-  };
-
-  const stopListening = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
-  };
-
-  const fakeApiCall = async (text: string) => {
-    setResult(null);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setResult(`You searched for: "${text}"`);
-  };
+    return () => {
+      recognition.stop();
+      recognitionRef.current = null;
+    };
+  }, [isOpen, onClose]);
 
   return (
-    <div className={styles.container}>
-      {!isListening && !transcript && (
-        <button onClick={startListening} className={styles.micButton}>
-          <img
-            src="https://www.gstatic.com/images/branding/googlemic/2x/googlemic_color_24dp.png"
-            alt="Mic"
-          />
+    <Modal
+      isOpen={isOpen}
+      onRequestClose={onClose}
+      className={styles.listeningModal}
+      overlayClassName={styles.modalOverlay}
+      ariaHideApp={false}
+    >
+      <div className={styles.modalHeader}>
+        <button className={styles.backButton} onClick={onClose}>
+          ←
         </button>
-      )}
-
-      {isListening && (
-        <div className={styles.listeningModal}>
-          <div className={styles.modalCard}>
-            <img
-              src="https://www.gstatic.com/images/branding/googlemic/2x/googlemic_color_24dp.png"
-              alt="Listening"
-              className={styles.listeningIcon}
-            />
-            <p className={styles.listeningText}>Listening…</p>
-            <button className={styles.cancelButton} onClick={stopListening}>
-              Cancel
-            </button>
-          </div>
+        <span className={styles.modalTitle}>Listening...</span>
+      </div>
+      <div className={styles.modalContent}>
+        <div className={styles.dotsAnimation}>
+          <span className={styles.dot} style={{ backgroundColor: "#4285F4" }}></span>
+          <span className={styles.dot} style={{ backgroundColor: "#EA4335" }}></span>
+          <span className={styles.dot} style={{ backgroundColor: "#FBBC05" }}></span>
+          <span className={styles.dot} style={{ backgroundColor: "#34A853" }}></span>
         </div>
-      )}
-
-      {transcript && result && (
-        <div className={styles.resultCard}>
-          <p className={styles.resultText}>{transcript}</p>
-          <p className={styles.resultHint}>{result}</p>
-        </div>
-      )}
-    </div>
+        <p className={styles.listeningText}>{transcript || "Listening…"}</p>
+      </div>
+    </Modal>
   );
 };
 
