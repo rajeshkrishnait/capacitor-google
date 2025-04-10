@@ -4,7 +4,7 @@ import { MoreVertical } from "lucide-react";
 
 type Article = {
   title: string;
-  urlToImage: string | null;
+  image: string | null;
   source: { name: string };
   publishedAt: string;
 };
@@ -13,36 +13,29 @@ const FALLBACK_IMAGE = "https://via.placeholder.com/400x200?text=No+Image";
 
 const NewsFeed = () => {
   const [articles, setArticles] = useState<Article[]>([]);
-
   useEffect(() => {
     const fetchNews = async () => {
       try {
         const res = await fetch(
-          `https://newsapi.org/v2/top-headlines?country=us&pageSize=10&apiKey=${import.meta.env.VITE_NEWS_API_KEY}`
-
+          ` https://gnews.io/api/v4/top-headlines?category=general&lang=en&country=us&max=10&apikey=${
+            import.meta.env.VITE_NEWS_API_KEY
+          }`
         );
         const data = await res.json();
 
         const validArticles = (data.articles || []).filter(
           (article: Article) =>
-            article.title && article.urlToImage && article.source?.name
+            article.title && article.image && article.source?.name
         );
 
         setArticles(validArticles);
       } catch (error) {
         console.error("Failed to fetch articles", error);
-        // Fallback dummy data
         setArticles([
           {
-            title: "AI is Changing Everything in Tech",
-            urlToImage: FALLBACK_IMAGE,
-            source: { name: "TechCrunch" },
-            publishedAt: new Date().toISOString(),
-          },
-          {
-            title: "India Launches New Space Mission",
-            urlToImage: FALLBACK_IMAGE,
-            source: { name: "The Verge" },
+            title: "Fallback Article: Tech Shifts",
+            image: FALLBACK_IMAGE,
+            source: { name: "Dummy News" },
             publishedAt: new Date().toISOString(),
           },
         ]);
@@ -65,7 +58,7 @@ const NewsFeed = () => {
         <div className={styles.card} key={idx}>
           <img
             className={styles.image}
-            src={article.urlToImage || FALLBACK_IMAGE}
+            src={article.image || FALLBACK_IMAGE}
             alt="news"
             onError={(e) => {
               (e.target as HTMLImageElement).src = FALLBACK_IMAGE;

@@ -10,6 +10,7 @@ interface VoiceSearchProps {
 
 const VoiceSearch: React.FC<VoiceSearchProps> = ({ isOpen, onClose }) => {
   const recognitionRef = useRef<any>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [transcript, setTranscript] = useState("");
   const [isListening, setIsListening] = useState(true);
   const navigate = useNavigate();
@@ -30,8 +31,22 @@ const VoiceSearch: React.FC<VoiceSearchProps> = ({ isOpen, onClose }) => {
     recognition.interimResults = true;
     recognition.continuous = false;
 
-    recognition.onstart = () => setIsListening(true);
+    const resetTimeout = () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => {
+        console.log("No speech detected for 2 seconds. Ending recognition.");
+        recognition.stop();
+      }, 5000); // 2-second timeout
+    };
+
+    recognition.onstart = () => {
+      console.log("Speech recognition started");
+      setIsListening(true);
+      resetTimeout();
+    };
+
     recognition.onend = () => {
+      console.log("Speech recognition ended");
       setIsListening(false);
       if (transcript.trim()) {
         navigate("/search-result", { state: { query: transcript } });
@@ -39,7 +54,8 @@ const VoiceSearch: React.FC<VoiceSearchProps> = ({ isOpen, onClose }) => {
       onClose();
     };
 
-    recognition.onerror = () => {
+    recognition.onerror = (e) => {
+      console.error("Speech error:", e);
       setIsListening(false);
       onClose();
     };
@@ -49,12 +65,15 @@ const VoiceSearch: React.FC<VoiceSearchProps> = ({ isOpen, onClose }) => {
         .map((result: any) => result[0].transcript)
         .join("");
       setTranscript(interimTranscript);
+      console.log(`Interim transcript: ${interimTranscript}`);
+      resetTimeout(); // Reset timeout on speech detection
     };
 
     recognitionRef.current = recognition;
     recognition.start();
 
     return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
       recognition.stop();
       recognitionRef.current = null;
     };

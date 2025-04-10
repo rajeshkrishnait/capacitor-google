@@ -43,7 +43,7 @@ const ImageUploadModal = () => {
         resultType: "DataUrl",
         source: "CAMERA",
       });
-      setImageSrc(photo.dataUrl);
+      setImageSrc(photo.dataUrl); // Set the captured photo as the image source
     } catch (err) {
       console.error("Camera error:", err);
     }
@@ -114,6 +114,7 @@ const ImageUploadModal = () => {
                 onCropChange={setCrop}
                 onZoomChange={setZoom}
                 onCropComplete={handleCropComplete}
+                showGrid={false} // Disable the grid
               />
             </div>
             <div className={styles.cropControls}>
