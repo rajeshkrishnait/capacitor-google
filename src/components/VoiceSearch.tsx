@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import Modal from "react-modal";
 import { useNavigate } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
+import { SpeechRecognition as CapacitorSpeechRecognition } from "@capacitor-community/speech-recognition";
 import styles from "../styles/VoiceSearch.module.scss";
 
 interface VoiceSearchProps {
@@ -9,75 +11,135 @@ interface VoiceSearchProps {
 }
 
 const VoiceSearch: React.FC<VoiceSearchProps> = ({ isOpen, onClose }) => {
-  const recognitionRef = useRef<any>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const finalTranscriptRef = useRef("");
+  const recognitionRef = useRef<any>(null);
   const [transcript, setTranscript] = useState("");
-  const [isListening, setIsListening] = useState(true);
+  const [isListening, setIsListening] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const navigate = useNavigate();
+
+  const isNative = Capacitor.getPlatform() !== "web";
 
   useEffect(() => {
     if (!isOpen) return;
 
-    const SpeechRecognition =
-      window?.SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert("Your browser does not support Speech Recognition.");
-      onClose();
-      return;
-    }
+    const startListening = async () => {
+      if (isNative) {
+        const hasPermission = await CapacitorSpeechRecognition.hasPermission();
+        if (!hasPermission.permissionGranted) {
+          await CapacitorSpeechRecognition.requestPermission();
+        }
 
-    const recognition = new SpeechRecognition();
-    recognition.lang = "en-US";
-    recognition.interimResults = true;
-    recognition.continuous = false;
+        setIsListening(true);
 
-    const resetTimeout = () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => {
-        console.log("No speech detected for 2 seconds. Ending recognition.");
-        recognition.stop();
-      }, 5000); // 2-second timeout
-    };
+        await CapacitorSpeechRecognition.start({
+          language: "en-US",
+          maxResults: 1,
+          partialResults: true,
+          popup: false,
+        });
 
-    recognition.onstart = () => {
-      console.log("Speech recognition started");
-      setIsListening(true);
-      resetTimeout();
-    };
+        CapacitorSpeechRecognition.addListener("speechRecognitionResult", (event: any) => {
+          const spoken = event.matches?.[0] || "";
+          setTranscript(spoken);
+          finalTranscriptRef.current = spoken;
+          resetTimeout();
+        });
 
-    recognition.onend = () => {
-      console.log("Speech recognition ended");
-      setIsListening(false);
-      if (transcript.trim()) {
-        navigate("/search-result", { state: { query: transcript } });
+        CapacitorSpeechRecognition.addListener("speechRecognitionEnd", () => {
+          setIsListening(false);
+          const finalText = finalTranscriptRef.current.trim();
+          if (finalText) setShowConfirm(true);
+          else onClose();
+        });
+      } else {
+        const SpeechRecognition =
+          (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+        if (!SpeechRecognition) {
+          alert("Speech Recognition is not supported in this browser.");
+          onClose();
+          return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognitionRef.current = recognition;
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = "en-US";
+
+        recognition.onresult = (event: SpeechRecognitionEvent) => {
+          const result = Array.from(event.results)
+            .map((res) => res[0].transcript)
+            .join("");
+          setTranscript(result);
+          finalTranscriptRef.current = result;
+          resetTimeout();
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+          const finalText = finalTranscriptRef.current.trim();
+          if (finalText) setShowConfirm(true);
+          else onClose();
+        };
+
+        recognition.onerror = (event: any) => {
+          console.error("Speech recognition error:", event);
+          onClose();
+        };
+
+        setIsListening(true);
+        recognition.start();
       }
-      onClose();
     };
 
-    recognition.onerror = (e) => {
-      console.error("Speech error:", e);
-      setIsListening(false);
-      onClose();
-    };
-
-    recognition.onresult = (event: any) => {
-      const interimTranscript = Array.from(event.results)
-        .map((result: any) => result[0].transcript)
-        .join("");
-      setTranscript(interimTranscript);
-      console.log(`Interim transcript: ${interimTranscript}`);
-      resetTimeout(); // Reset timeout on speech detection
-    };
-
-    recognitionRef.current = recognition;
-    recognition.start();
+    startListening();
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      recognition.stop();
-      recognitionRef.current = null;
+      if (isNative) {
+        CapacitorSpeechRecognition.stop();
+        CapacitorSpeechRecognition.removeAllListeners();
+      } else {
+        if (recognitionRef.current) {
+          recognitionRef.current.stop();
+          recognitionRef.current = null;
+        }
+      }
+      // Do not clear finalTranscriptRef here
     };
-  }, [isOpen, onClose, navigate, transcript]);
+  }, [isOpen]);
+
+  const resetTimeout = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      if (isNative) {
+        CapacitorSpeechRecognition.stop();
+      } else if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    }, 2000);
+  };
+
+  const handleConfirmRedirect = () => {
+    const query = finalTranscriptRef.current.trim();
+    if (query) {
+      navigate("/search-result", { state: { query } });
+    }
+    cleanup();
+  };
+
+  const handleCancelRedirect = () => {
+    cleanup();
+  };
+
+  const cleanup = () => {
+    setShowConfirm(false);
+    finalTranscriptRef.current = "";
+    onClose();
+  };
 
   return (
     <Modal
@@ -87,16 +149,8 @@ const VoiceSearch: React.FC<VoiceSearchProps> = ({ isOpen, onClose }) => {
       overlayClassName={styles.modalOverlay}
       ariaHideApp={false}
     >
-      <div className={styles.modalHeader}>
-        <button className={styles.backButton} onClick={onClose}>
-          ←
-        </button>
-        <span className={styles.modalTitle}>
-          {isListening ? "Listening..." : "Results"}
-        </span>
-      </div>
       <div className={styles.modalContent}>
-        {isListening ? (
+        {isListening && (
           <div>
             <div className={styles.dotsAnimation}>
               <span className={styles.dot} style={{ backgroundColor: "#4285F4" }}></span>
@@ -106,7 +160,23 @@ const VoiceSearch: React.FC<VoiceSearchProps> = ({ isOpen, onClose }) => {
             </div>
             <p className={styles.listeningText}>{transcript || "Listening…"}</p>
           </div>
-        ) : null}
+        )}
+
+        {showConfirm && (
+          <div className={styles.confirmContainer}>
+            <p className={styles.confirmText}>
+              We heard: <strong>"{finalTranscriptRef.current.trim()}"</strong>
+            </p>
+            <div className={styles.confirmButtons}>
+              <button className={styles.confirmBtn} onClick={handleConfirmRedirect}>
+                Continue
+              </button>
+              <button className={styles.cancelBtn} onClick={handleCancelRedirect}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </Modal>
   );

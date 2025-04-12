@@ -1,135 +1,97 @@
-import React, { useState, useRef, useCallback } from "react";
-import Modal from "react-modal";
-import Cropper from "react-easy-crop";
-import { Camera } from "@capacitor/camera";
-import styles from "../styles/imageUploadModal.module.scss";
+import React, { useState, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import Cropper from 'react-easy-crop';
+import { getCroppedImg } from './utils/cropImage';
+import './ImageSearchModal.scss';
 
-Modal.setAppElement("#root");
+interface Props {
+  isOpen: boolean;
+  onClose: () => void;
+  onSearch: (croppedImage: Blob) => void;
+}
 
-const ImageUploadModal = () => {
-  const [isOpen, setIsOpen] = useState(true);
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
+const ImageSearchModal: React.FC<Props> = ({ isOpen, onClose, onSearch }) => {
+  const [image, setImage] = useState<string | null>(null);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const closeModal = () => setIsOpen(false);
+  const isMobile = Capacitor.isNativePlatform();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    if (isOpen && isMobile) {
+      openCamera();
+    }
+  }, [isOpen]);
+
+  const openCamera = async () => {
+    try {
+      const photo = await Camera.getPhoto({
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Camera,
+        quality: 90,
+      });
+      setImage(photo.dataUrl || null);
+    } catch (e) {
+      console.error('Camera error', e);
+      onClose();
+    }
+  };
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => setImageSrc(reader.result as string);
+      reader.onload = () => {
+        setImage(reader.result as string);
+      };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleCropComplete = useCallback((_, croppedAreaPixels) => {
-    setCroppedAreaPixels(croppedAreaPixels);
-  }, []);
-
-  const handleCropSave = () => {
-    // Logic to save or process the cropped image
-    console.log("Cropped area pixels:", croppedAreaPixels);
-    closeModal();
+  const onCropComplete = (croppedArea: any, croppedPixels: any) => {
+    setCroppedAreaPixels(croppedPixels);
   };
 
-  const handleCameraClick = async () => {
-    try {
-      const photo = await Camera.getPhoto({
-        quality: 90,
-        allowEditing: false,
-        resultType: "DataUrl",
-        source: "CAMERA",
-      });
-      setImageSrc(photo.dataUrl); // Set the captured photo as the image source
-    } catch (err) {
-      console.error("Camera error:", err);
-    }
+  const handleCropSave = async () => {
+    if (!image || !croppedAreaPixels) return;
+    const blob = await getCroppedImg(image, croppedAreaPixels);
+    onSearch(blob);
   };
+
+  if (!isOpen) return null;
 
   return (
-    <div>
-      <Modal
-        isOpen={isOpen}
-        onRequestClose={closeModal}
-        className={styles.lensModal}
-        overlayClassName={styles.lensOverlay}
-      >
-        <div className={styles.modalHeader}>
-          <span>Search any image with Google Lens</span>
-          <button className={styles.closeBtn} onClick={closeModal}>
-            ×
-          </button>
+    <div className="modal-overlay">
+      {!image && !isMobile && (
+        <div className="upload-container">
+          <label className="upload-label">
+            Upload Image
+            <input type="file" accept="image/*" onChange={handleUpload} hidden />
+          </label>
+          <button className="close-btn" onClick={onClose}>Close</button>
         </div>
+      )}
 
-        {!imageSrc ? (
-          <div className={styles.uploadSection}>
-            <div
-              className={styles.dropArea}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <img
-                src="https://www.gstatic.com/images/branding/product/1x/photos_96dp.png"
-                alt="Placeholder"
-              />
-              <p>
-                Drag an image here or{" "}
-                <span className={styles.uploadLink}>upload a file</span>
-              </p>
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept="image/*"
-                onChange={handleFileChange}
-                style={{ display: "none" }}
-                capture="environment"
-              />
-            </div>
-
-            <p className={styles.orText}>OR</p>
-
-            <div className={styles.urlInputContainer}>
-              <input
-                type="text"
-                placeholder="Paste image link"
-                className={styles.urlInput}
-              />
-              <button className={styles.searchBtn}>Search</button>
-            </div>
-
-            <button className={styles.cameraBtn} onClick={handleCameraClick}>
-              📷 Take a photo
-            </button>
+      {image && (
+        <div className={`cropper-container ${isMobile ? 'mobile' : 'web'}`}>
+          <Cropper
+            image={image}
+            crop={{ x: 0, y: 0 }}
+            zoom={zoom}
+            aspect={1}
+            onCropChange={() => {}}
+            onCropComplete={onCropComplete}
+            onZoomChange={setZoom}
+          />
+          <div className="controls">
+            <button onClick={handleCropSave}>Search</button>
+            <button onClick={onClose}>Cancel</button>
           </div>
-        ) : (
-          <div className={styles.cropSection}>
-            <div className={styles.cropperContainer}>
-              <Cropper
-                image={imageSrc}
-                crop={crop}
-                zoom={zoom}
-                aspect={1}
-                onCropChange={setCrop}
-                onZoomChange={setZoom}
-                onCropComplete={handleCropComplete}
-                showGrid={false} // Disable the grid
-              />
-            </div>
-            <div className={styles.cropControls}>
-              <button className={styles.cropSaveBtn} onClick={handleCropSave}>
-                Save
-              </button>
-              <button className={styles.cropCancelBtn} onClick={closeModal}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-      </Modal>
+        </div>
+      )}
     </div>
   );
 };
 
-export default ImageUploadModal;
+export default ImageSearchModal;
