@@ -20,6 +20,9 @@ const Nav = () => {
         <div className={styles.nav}>
             <div className={styles.navLeft}>
                 {isMobile && Labs}
+                {!isMobile && <a>About</a>}
+                {!isMobile && <a>About</a>}
+
             </div>
             <div className={styles.navRight}>
                 {!isMobile && (

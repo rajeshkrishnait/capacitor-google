@@ -1,189 +1,136 @@
-@import url("https://fonts.googleapis.com/icon?family=Material+Icons");
-
-:root {
-  --modal-bg: #f9fafd;
-  --text-color: #222;
-  --hover-bg: #f1f3f4;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --modal-bg: #2c2c2c;
-    --text-color: #fff;
-    --hover-bg: #3a3a3a;
-  }
-}
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
 .modalWrapper {
   position: fixed;
-  top: 0;
-  right: 0;
-  z-index: 1000;
-  height: 100%;
-  width: 100%;
-  pointer-events: none;
-
-  @media (min-width: 768px) {
-    width: auto;
-    pointer-events: none;
-  }
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
 }
 
 .modal {
-  background: var(--modal-bg);
-  color: var(--text-color);
-  border-radius: 28px 0 0 28px;
-  padding: 24px 20px;
+  background-color: #202124;
   width: 100%;
-  max-height: 100vh;
+  border-radius: 16px 16px 0 0;
+  max-height: 90vh;
   overflow-y: auto;
-  pointer-events: all;
-
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  animation: slideUp 0.3s ease-out;
-
-  @media (min-width: 768px) {
-    width: 360px;
-    height: auto;
-    top: 20px;
-    bottom: auto;
-    animation: slideRight 0.3s ease-out;
-  }
+  color: #e8eaed;
+  padding-bottom: 16px;
 }
 
-@keyframes slideUp {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
+.modalHeader {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-@keyframes slideRight {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
+.googleLogo {
+  height: 24px;
 }
 
 .closeBtn {
-  position: absolute;
-  top: 12px;
-  right: 16px;
   background: none;
   border: none;
-  font-size: 24px;
+  color: #e8eaed;
   cursor: pointer;
-  color: var(--text-color);
 }
 
-.email {
-  text-align: center;
-  font-size: 14px;
-  margin-top: 32px;
-}
-
-.avatarWrapper {
-  position: relative;
-  width: 100px;
-  margin: 16px auto 0;
+.profileSection {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .avatar {
-  width: 100px;
-  height: 100px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
 }
 
-.editIcon {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  background: white;
-  border-radius: 50%;
-  font-size: 12px;
-  padding: 4px;
-  border: 1px solid #ccc;
-}
+.profileInfo {
+  display: flex;
+  flex-direction: column;
 
-.greeting {
-  text-align: center;
-  margin: 12px 0;
-  font-size: 20px;
-  font-weight: 500;
+  .name {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .email {
+    font-size: 12px;
+    color: #9aa0a6;
+  }
 }
 
 .manageBtn {
-  display: block;
-  margin: 0 auto;
+  background: none;
+  border: none;
+  color: #8ab4f8;
+  font-size: 14px;
   padding: 8px 16px;
-  border-radius: 999px;
-  border: 1px solid #ccc;
-  background: white;
-  font-size: 14px;
-  color: #1a73e8;
+  text-align: left;
   cursor: pointer;
-}
+  width: 100%;
 
-.accountSwitcher {
-  background: white;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  margin: 20px 0;
-  font-size: 14px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.avatars img {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  margin-left: 8px;
-}
-
-.sectionLabel {
-  font-size: 12px;
-  color: #888;
-  margin: 12px 0 6px;
+  &:hover {
+    background-color: rgba(138, 180, 248, 0.1);
+  }
 }
 
 .optionList {
-  margin-top: 8px;
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .option {
-  background: white;
-  border-radius: 12px;
-  padding: 14px 16px;
-  margin-bottom: 10px;
-  font-size: 14px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
   cursor: pointer;
-  transition: background 0.2s ease;
 
   &:hover {
-    background: var(--hover-bg);
+    background-color: rgba(255, 255, 255, 0.1);
   }
 
-  i.material-icons {
-    font-size: 18px;
-    margin-right: 8px;
-    color: #555;
+  .icon {
+    font-family: 'Material Icons';
+    font-size: 20px;
+    margin-right: 16px;
+    color: #9aa0a6;
+  }
+
+  .textWrapper {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .subtext {
+    font-size: 12px;
+    color: #9aa0a6;
   }
 }
 
-.subText {
-  color: #888;
-  font-size: 12px;
+.signOut {
+  padding: 12px 16px;
+}
+
+.signOutBtn {
+  width: 100%;
+  padding: 10px 0;
+  background: none;
+  border: none;
+  color: #8ab4f8;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgba(138, 180, 248, 0.1);
+  }
 }
